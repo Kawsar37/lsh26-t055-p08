@@ -21,7 +21,7 @@ export async function recalculateStudentResult(
   const compulsoryCodes = caseDoc?.compulsory || ['BAN', 'ENG', 'MAT', 'PHY', 'CHE', 'BIO'];
 
   const subjectMap = new Map<string, { code: string; name: string; practical: boolean }>();
-  subjectsMeta.forEach((s) => subjectMap.set(s.code, s));
+  subjectsMeta.forEach((s: any) => subjectMap.set(s.code, s));
 
   // Fetch all marks for this student
   const marks = await MarkModel.find({ caseId, studentId });

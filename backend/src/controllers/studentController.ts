@@ -91,7 +91,7 @@ export async function getStudentById(req: Request, res: Response): Promise<void>
     const { id } = req.params;
     const caseId = (req.query.caseId as string) || 'PUB-01';
 
-    let student = await StudentModel.findOne({ caseId, studentId: id }).lean();
+    let student: any = await StudentModel.findOne({ caseId, studentId: id }).lean();
     if (!student) {
       student = await StudentModel.findOne({ studentId: id }).lean();
     }

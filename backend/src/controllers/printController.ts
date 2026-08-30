@@ -8,7 +8,7 @@ export async function getPrintMarksheetData(req: Request, res: Response): Promis
     const { studentId } = req.params;
     const caseId = (req.query.caseId as string) || 'PUB-01';
 
-    let student = await StudentModel.findOne({ caseId, studentId }).lean();
+    let student: any = await StudentModel.findOne({ caseId, studentId }).lean();
     if (!student) {
       student = await StudentModel.findOne({ studentId }).lean();
     }
