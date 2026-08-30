@@ -152,6 +152,157 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* PRE-PUBLICATION AUDIT SECTION */}
+        {stats && (
+          <div className="bg-surface-container-lowest rounded-2xl shadow-sm border border-outline-variant/20 p-6 space-y-6">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                  <span className="material-symbols-outlined text-[24px]">fact_check</span>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="font-title-md font-bold text-on-surface">Pre-Publication Audit</h2>
+                    <span className="text-[10px] font-extrabold uppercase bg-surface-container text-on-surface-variant px-2 py-0.5 rounded">
+                      {activeCase}
+                    </span>
+                  </div>
+                  <p className="text-xs text-on-surface-variant mt-0.5">
+                    Automated audit check across optional GPA thresholds, practical pass marks, and absentee exceptions.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/checking-lists"
+                  className="bg-primary hover:bg-on-primary-fixed-variant text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm text-xs"
+                >
+                  <span className="material-symbols-outlined text-[16px]">checklist_rtl</span>
+                  Review All Issues
+                </Link>
+              </div>
+            </div>
+
+            {/* Publication Readiness Banner */}
+            {stats.needsReview === 0 ? (
+              <div className="p-4 bg-pass/10 border border-pass/30 rounded-xl flex items-center gap-3 text-pass">
+                <span className="material-symbols-outlined text-[22px]">verified</span>
+                <div>
+                  <h4 className="font-bold text-xs">Ready to Publish</h4>
+                  <p className="text-[11px] text-on-surface-variant mt-0.5">
+                    All {stats.totalStudents} student results have passed the audit checks with 0 flagged verification exceptions.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="p-4 bg-[#F59E0B]/10 border border-[#F59E0B]/30 rounded-xl flex items-center justify-between gap-3 text-[#B45309]">
+                <div className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-[22px]">warning</span>
+                  <div>
+                    <h4 className="font-bold text-xs">Review Required</h4>
+                    <p className="text-[11px] text-on-surface-variant mt-0.5">
+                      {stats.needsReview} of {stats.totalStudents} student results require manual verification before publication.
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href="/checking-lists"
+                  className="text-xs font-bold underline hover:opacity-80 flex items-center gap-1"
+                >
+                  Open Checking Lists
+                  <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
+                </Link>
+              </div>
+            )}
+
+            {/* 4 Summary Metrics */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-surface-container-low/50 p-4 rounded-xl border border-outline-variant/15 space-y-1">
+                <span className="text-[11px] text-on-surface-variant font-medium">Total Students</span>
+                <p className="font-mono text-2xl font-extrabold text-on-surface">
+                  {stats.totalStudents}
+                </p>
+              </div>
+              <div className="bg-surface-container-low/50 p-4 rounded-xl border border-outline-variant/15 space-y-1">
+                <span className="text-[11px] text-pass font-semibold flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                  Ready to Publish
+                </span>
+                <p className="font-mono text-2xl font-extrabold text-pass">
+                  {stats.prePublicationAudit?.readyToPublish ?? Math.max(0, stats.totalStudents - stats.needsReview)}
+                </p>
+              </div>
+              <div className="bg-surface-container-low/50 p-4 rounded-xl border border-outline-variant/15 space-y-1">
+                <span className="text-[11px] text-[#B45309] font-semibold flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[14px]">warning</span>
+                  Needs Review
+                </span>
+                <p className="font-mono text-2xl font-extrabold text-[#B45309]">
+                  {stats.needsReview}
+                </p>
+              </div>
+              <div className="bg-surface-container-low/50 p-4 rounded-xl border border-outline-variant/15 space-y-1">
+                <span className="text-[11px] text-on-surface-variant font-medium">Total Issue Flags</span>
+                <p className="font-mono text-2xl font-extrabold text-primary">
+                  {stats.prePublicationAudit?.totalIssues ?? stats.needsReview}
+                </p>
+              </div>
+            </div>
+
+            {/* 3 Categories Breakdown */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+              <Link
+                href="/checking-lists"
+                className="p-3.5 bg-surface-container-lowest hover:bg-surface-container-low rounded-xl border border-outline-variant/20 transition-all flex items-center justify-between group"
+              >
+                <div>
+                  <span className="text-xs font-semibold text-on-surface block">Optional Issues (GP &le; 2.0)</span>
+                  <span className="text-[11px] text-on-surface-variant">Low 4th subject bonus check</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono font-bold text-sm bg-surface-container px-2 py-0.5 rounded text-on-surface group-hover:bg-primary group-hover:text-white transition-colors">
+                    {stats.prePublicationAudit?.optionalIssues ?? 0}
+                  </span>
+                  <span className="material-symbols-outlined text-[16px] text-on-surface-variant">chevron_right</span>
+                </div>
+              </Link>
+
+              <Link
+                href="/checking-lists"
+                className="p-3.5 bg-surface-container-lowest hover:bg-surface-container-low rounded-xl border border-outline-variant/20 transition-all flex items-center justify-between group"
+              >
+                <div>
+                  <span className="text-xs font-semibold text-on-surface block">Practical Issues (&lt; 8 / &lt; 25)</span>
+                  <span className="text-[11px] text-on-surface-variant">Component failure check</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono font-bold text-sm bg-surface-container px-2 py-0.5 rounded text-on-surface group-hover:bg-primary group-hover:text-white transition-colors">
+                    {stats.prePublicationAudit?.practicalIssues ?? 0}
+                  </span>
+                  <span className="material-symbols-outlined text-[16px] text-on-surface-variant">chevron_right</span>
+                </div>
+              </Link>
+
+              <Link
+                href="/checking-lists"
+                className="p-3.5 bg-surface-container-lowest hover:bg-surface-container-low rounded-xl border border-outline-variant/20 transition-all flex items-center justify-between group"
+              >
+                <div>
+                  <span className="text-xs font-semibold text-on-surface block">Absent Issues (AB)</span>
+                  <span className="text-[11px] text-on-surface-variant">Absence recorded in exam</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono font-bold text-sm bg-surface-container px-2 py-0.5 rounded text-on-surface group-hover:bg-primary group-hover:text-white transition-colors">
+                    {stats.prePublicationAudit?.absentIssues ?? 0}
+                  </span>
+                  <span className="material-symbols-outlined text-[16px] text-on-surface-variant">chevron_right</span>
+                </div>
+              </Link>
+            </div>
+          </div>
+        )}
+
         {/* Visual Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Class-wise Comparative Chart */}

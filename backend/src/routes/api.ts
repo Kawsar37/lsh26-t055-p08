@@ -27,6 +27,7 @@ import {
 import { getDashboardStats } from '../controllers/dashboardController.js';
 import { getPrintMarksheetData } from '../controllers/printController.js';
 import { getCases, getCaseById } from '../controllers/caseController.js';
+import { evaluateRuleTester } from '../controllers/ruleTesterController.js';
 
 const upload = multer({ storage: multer.memoryStorage() });
 const router = Router();
@@ -64,5 +65,8 @@ router.post('/import/marks', upload.single('file'), validateAndImportMarks);
 
 // Printable Marksheet
 router.get('/print/:studentId', getPrintMarksheetData);
+
+// P08 Edge Case Rule Tester (Pure In-Memory Evaluation)
+router.post('/rule-tester/evaluate', evaluateRuleTester);
 
 export default router;

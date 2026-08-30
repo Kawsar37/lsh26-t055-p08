@@ -90,4 +90,12 @@ export const api = {
     });
     return res.json();
   },
+
+  // Rule Tester (Pure In-Memory Evaluation)
+  evaluateRuleTester: (mode: string, payload: any) =>
+    fetchApi<any>('/rule-tester/evaluate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode, payload })
+    })
 };

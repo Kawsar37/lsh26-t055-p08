@@ -16,6 +16,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Results', href: '/results', icon: 'grading' },
   { label: 'Checking Lists', href: '/checking-lists', icon: 'checklist_rtl' },
   { label: 'Class Summary', href: '/class-summary', icon: 'analytics' },
+  { label: 'Rule Tester', href: '/rule-tester', icon: 'science' },
   { label: 'Import Marks', href: '/import', icon: 'upload_file' },
 ];
 

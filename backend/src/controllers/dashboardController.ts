@@ -21,6 +21,10 @@ export async function getDashboardStats(req: Request, res: Response): Promise<vo
     let failedCount = 0;
     let needsReviewCount = 0;
 
+    let optionalIssuesCount = 0;
+    let practicalIssuesCount = 0;
+    let absentIssuesCount = 0;
+
     const gradeDistribution: Record<string, number> = {
       'A+': 0,
       A: 0,
@@ -32,6 +36,7 @@ export async function getDashboardStats(req: Request, res: Response): Promise<vo
     };
 
     const classStatsMap = new Map<string, { className: string; total: number; passed: number; failed: number }>();
+    const flaggedAuditDetails: any[] = [];
 
     results.forEach((r: any) => {
       const isPass = r.overallResult === 'PASS';
@@ -41,8 +46,44 @@ export async function getDashboardStats(req: Request, res: Response): Promise<vo
         failedCount++;
       }
 
-      if (r.checkingFlags?.isFlaggedForReview) {
+      const flags = r.checkingFlags || {};
+      let studentHasIssue = false;
+
+      if (flags.needsOptionalReview) {
+        optionalIssuesCount++;
+        studentHasIssue = true;
+      }
+      if (flags.needsPracticalReview) {
+        practicalIssuesCount++;
+        studentHasIssue = true;
+      }
+      if (flags.needsAbsentReview) {
+        absentIssuesCount++;
+        studentHasIssue = true;
+      }
+
+      if (flags.isFlaggedForReview || studentHasIssue) {
         needsReviewCount++;
+        if (flaggedAuditDetails.length < 20) {
+          // Identify issue category and problematic subject
+          const issueCategories: string[] = [];
+          if (flags.needsOptionalReview) issueCategories.push('Optional Review');
+          if (flags.needsPracticalReview) issueCategories.push('Practical Review');
+          if (flags.needsAbsentReview) issueCategories.push('Absent Review');
+
+          flaggedAuditDetails.push({
+            studentId: r.studentId,
+            caseId: r.caseId,
+            studentName: r.studentName,
+            className: r.className,
+            overallResult: r.overallResult,
+            letterGrade: r.letterGrade,
+            finalGpa: r.finalGpa,
+            issueCategories,
+            reviewReasons: flags.reviewReasons || [],
+            reasonsText: (flags.reviewReasons || []).join('; ')
+          });
+        }
       }
 
       const letter = r.letterGrade || 'F';
@@ -62,6 +103,8 @@ export async function getDashboardStats(req: Request, res: Response): Promise<vo
 
     const passRate = totalStudents > 0 ? Number(((passedCount / totalStudents) * 100).toFixed(1)) : 0;
     const classComparative = Array.from(classStatsMap.values());
+    const readyToPublish = Math.max(0, totalStudents - needsReviewCount);
+    const totalIssues = optionalIssuesCount + practicalIssuesCount + absentIssuesCount;
 
     const recentAudit = results.slice(0, 15).map((r: any) => ({
       resultId: r._id,
@@ -89,6 +132,18 @@ export async function getDashboardStats(req: Request, res: Response): Promise<vo
         failed: failedCount,
         passRate,
         needsReview: needsReviewCount,
+        prePublicationAudit: {
+          totalStudents,
+          readyToPublish,
+          needsReview: needsReviewCount,
+          totalIssues,
+          optionalIssues: optionalIssuesCount,
+          practicalIssues: practicalIssuesCount,
+          absentIssues: absentIssuesCount,
+          isReady: needsReviewCount === 0,
+          status: needsReviewCount === 0 ? 'READY' : 'REVIEW_REQUIRED',
+          flaggedDetails: flaggedAuditDetails
+        },
         gradeDistribution,
         classComparative,
         recentAudit

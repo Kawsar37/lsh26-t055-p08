@@ -7,6 +7,7 @@ import { Header } from '@/components/Header';
 import { StatusBadge, GradeBadge } from '@/components/StatusBadge';
 import { CalculationTraceView } from '@/components/CalculationTraceView';
 import { EditMarksModal } from '@/components/EditMarksModal';
+import { ResultVerificationModal } from '@/components/ResultVerificationModal';
 import { AuditTraceSkeleton } from '@/components/LoadingState';
 import { api } from '@/lib/api';
 import { ResultData, StudentItem } from '@/lib/types';
@@ -26,6 +27,7 @@ export default function StudentAuditPage() {
   const [loading, setLoading] = useState(true);
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
@@ -97,6 +99,14 @@ export default function StudentAuditPage() {
             </button>
 
             <button
+              onClick={() => setIsVerificationModalOpen(true)}
+              className="bg-primary hover:bg-on-primary-fixed-variant text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm text-xs"
+            >
+              <span className="material-symbols-outlined text-[16px]">verified</span>
+              Verify Result
+            </button>
+
+            <button
               onClick={handleRecalculate}
               disabled={isRecalculating}
               className="bg-surface-container hover:bg-surface-container-high text-primary font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-1.5 border border-outline-variant/30 text-xs shadow-sm disabled:opacity-50"
@@ -108,7 +118,7 @@ export default function StudentAuditPage() {
             {student && (
               <Link
                 href={`/print/${student.studentId}?caseId=${student.caseId || currentCase}`}
-                className="bg-primary hover:bg-on-primary-fixed-variant text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm text-xs"
+                className="bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold py-2 px-4 rounded-lg transition-colors flex items-center gap-1.5 border border-outline-variant/30 text-xs shadow-sm"
               >
                 <span className="material-symbols-outlined text-[16px]">print</span>
                 Print Marksheet
@@ -355,6 +365,18 @@ export default function StudentAuditPage() {
             setTimeout(() => setSuccessMsg(null), 4000);
             loadStudentData();
           }}
+        />
+      )}
+
+      {/* Result Verification Modal */}
+      {student && result && (
+        <ResultVerificationModal
+          isOpen={isVerificationModalOpen}
+          onClose={() => setIsVerificationModalOpen(false)}
+          student={student}
+          result={result}
+          marks={marks}
+          caseId={student.caseId || currentCase}
         />
       )}
     </>

@@ -85,6 +85,30 @@ export interface CaseItem {
   averageGpa?: number;
 }
 
+export interface PrePublicationAudit {
+  totalStudents: number;
+  readyToPublish: number;
+  needsReview: number;
+  totalIssues: number;
+  optionalIssues: number;
+  practicalIssues: number;
+  absentIssues: number;
+  isReady: boolean;
+  status: 'READY' | 'REVIEW_REQUIRED';
+  flaggedDetails: Array<{
+    studentId: string;
+    caseId: string;
+    studentName: string;
+    className: string;
+    overallResult: OverallResult;
+    letterGrade: string;
+    finalGpa: number;
+    issueCategories: string[];
+    reviewReasons: string[];
+    reasonsText: string;
+  }>;
+}
+
 export interface DashboardStats {
   caseId: string;
   availableCases: CaseItem[];
@@ -93,6 +117,7 @@ export interface DashboardStats {
   failed: number;
   passRate: number;
   needsReview: number;
+  prePublicationAudit?: PrePublicationAudit;
   gradeDistribution: Record<string, number>;
   classComparative: Array<{
     className: string;

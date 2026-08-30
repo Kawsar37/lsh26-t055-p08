@@ -61,7 +61,7 @@ export function StatusBadge({ status, size = 'md' }: StatusBadgeProps) {
   );
 }
 
-export function GradeBadge({ grade }: { grade: string }) {
+export function GradeBadge({ grade, size = 'md' }: { grade: string; size?: 'sm' | 'md' | 'lg' }) {
   const getStyle = () => {
     switch (grade) {
       case 'A+':
@@ -82,8 +82,15 @@ export function GradeBadge({ grade }: { grade: string }) {
     }
   };
 
+  const sizeStyle =
+    size === 'sm'
+      ? 'px-1.5 py-0.2 text-[10px]'
+      : size === 'lg'
+      ? 'px-3.5 py-1 text-sm font-black'
+      : 'px-2.5 py-0.5 text-xs';
+
   return (
-    <span className={`inline-flex items-center justify-center font-extrabold px-2.5 py-0.5 rounded text-xs border ${getStyle()}`}>
+    <span className={`inline-flex items-center justify-center font-extrabold rounded border ${getStyle()} ${sizeStyle}`}>
       {grade}
     </span>
   );
