@@ -21,7 +21,7 @@ export default function RootLayout({
           <NavProvider>
             <Sidebar />
             <div className="pl-0 lg:pl-72 flex flex-col min-h-screen transition-all duration-300">
-              <main className="pt-16 p-3 sm:p-4 md:p-6 lg:p-8 flex-1 w-full max-w-full overflow-x-hidden">
+              <main className="pt-20 sm:pt-24 lg:pt-24 px-4 sm:px-6 lg:px-8 pb-8 flex-1 w-full max-w-full overflow-x-hidden">
                 {children}
               </main>
             </div>
