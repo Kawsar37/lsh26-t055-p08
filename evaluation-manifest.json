@@ -6,7 +6,7 @@
   "project_subtitle": "School Result Processing and GPA Engine",
   "repository_name": "lsh26-t055-p08",
   "repository_url": "https://github.com/Kawsar37/lsh26-t055-p08.git",
-  "live_url": "http://localhost:3000",
+  "live_url": "https://lsh26-t055-p08.vercel.app",
   "deployment_provider": "Local Node.js / Express + Next.js",
   "team_members": [
     {
