@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Header } from '../../components/Header';
-import { api } from '../../lib/api';
-import { useCase } from '../../context/CaseContext';
+import { Header } from '@/components/Header';
+import { api } from '@/lib/api';
+import { useCase } from '@/context/CaseContext';
 
 export default function ImportMarksPage() {
   const { activeCase } = useCase();
