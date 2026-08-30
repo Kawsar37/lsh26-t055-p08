@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
 
 interface SubjectEntry {
@@ -19,6 +19,7 @@ interface EditMarksModalProps {
   studentId: string;
   studentName: string;
   initialSubjects: any[];
+  caseId?: string;
   isOpen: boolean;
   onClose: () => void;
   onSuccess: (updatedResult: any) => void;
@@ -28,26 +29,41 @@ export function EditMarksModal({
   studentId,
   studentName,
   initialSubjects,
+  caseId = 'PUB-01',
   isOpen,
   onClose,
   onSuccess
 }: EditMarksModalProps) {
-  const [subjects, setSubjects] = useState<SubjectEntry[]>(() =>
-    initialSubjects.map((s) => ({
-      subjectId: s.subjectId?._id || s.subjectId,
-      subjectCode: s.subjectCode || s.subjectId?.code || '',
-      subjectName: s.subjectName || s.subjectId?.name || '',
-      isCompulsory: s.isCompulsory ?? true,
-      isPractical: s.isPractical ?? false,
-      status: s.status === 'AB' || s.markStatus === 'AB' ? 'AB' : 'MARKED',
-      mark: s.mark !== undefined ? s.mark : s.totalMark !== 'AB' ? Number(s.totalMark) : 0,
-      theory: s.theory !== undefined ? s.theory : 0,
-      practical: s.practical !== undefined ? s.practical : 0
-    }))
-  );
-
+  const [subjects, setSubjects] = useState<SubjectEntry[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Synchronize state whenever modal opens or initialSubjects change
+  useEffect(() => {
+    if (isOpen && Array.isArray(initialSubjects)) {
+      const mapped = initialSubjects.map((s) => {
+        const isPrac = Boolean(s.isPractical);
+        const isAbsent = s.status === 'AB' || s.markStatus === 'AB' || s.totalMark === 'AB';
+        const theoryVal = s.theory !== undefined ? Number(s.theory) : 0;
+        const practicalVal = s.practical !== undefined ? Number(s.practical) : 0;
+        const markVal = s.mark !== undefined ? Number(s.mark) : !isAbsent && s.totalMark ? Number(s.totalMark) : 0;
+
+        return {
+          subjectId: s.subjectCode || s.subjectId?._id || s.subjectId,
+          subjectCode: s.subjectCode || s.subjectId?.code || s.subjectId || '',
+          subjectName: s.subjectName || s.subjectId?.name || s.subjectCode || '',
+          isCompulsory: s.isCompulsory ?? true,
+          isPractical: isPrac,
+          status: (isAbsent ? 'AB' : 'MARKED') as 'MARKED' | 'AB',
+          mark: markVal,
+          theory: theoryVal,
+          practical: practicalVal
+        };
+      });
+      setSubjects(mapped);
+      setErrorMsg(null);
+    }
+  }, [isOpen, initialSubjects]);
 
   if (!isOpen) return null;
 
@@ -88,10 +104,21 @@ export function EditMarksModal({
         }
       }
 
-      const res = await api.updateStudentMarks(studentId, subjects);
+      // Format payload for backend
+      const payload = subjects.map((s) => ({
+        subjectCode: s.subjectCode,
+        status: s.status,
+        isPractical: s.isPractical,
+        mark: s.isPractical ? undefined : Number(s.mark ?? 0),
+        theory: s.isPractical ? Number(s.theory ?? 0) : undefined,
+        practical: s.isPractical ? Number(s.practical ?? 0) : undefined
+      }));
+
+      const res = await api.updateStudentMarks(studentId, payload, caseId);
       onSuccess(res);
       onClose();
     } catch (err: any) {
+      console.error('Error updating student marks:', err);
       setErrorMsg(err.message || 'Failed to update marks');
     } finally {
       setIsSubmitting(false);
@@ -109,7 +136,9 @@ export function EditMarksModal({
             </div>
             <div>
               <h3 className="font-title-sm font-bold text-on-surface">Edit Student Marks & Recalculate</h3>
-              <p className="text-xs text-on-surface-variant">Student: {studentName} ({studentId})</p>
+              <p className="text-xs text-on-surface-variant">
+                Student: {studentName} ({studentId}) • Dataset: <strong className="text-primary">{caseId}</strong>
+              </p>
             </div>
           </div>
           <button
@@ -132,7 +161,7 @@ export function EditMarksModal({
           <div className="space-y-3">
             {subjects.map((sub, idx) => (
               <div
-                key={sub.subjectId || idx}
+                key={sub.subjectCode || idx}
                 className="p-3 rounded-xl bg-surface-container-low border border-outline-variant/20 flex flex-wrap items-center justify-between gap-3"
               >
                 <div className="w-48">
@@ -140,7 +169,7 @@ export function EditMarksModal({
                     {sub.subjectName}
                   </span>
                   <span className="text-[10px] text-on-surface-variant font-mono">
-                    {sub.isCompulsory ? 'Compulsory' : 'Optional (4th)'} {sub.isPractical ? '• Practical' : ''}
+                    {sub.isCompulsory ? 'Compulsory' : 'Optional (4th)'} {sub.isPractical ? '• Practical' : ''} ({sub.subjectCode})
                   </span>
                 </div>
 
@@ -149,7 +178,7 @@ export function EditMarksModal({
                   <button
                     type="button"
                     onClick={() => handleStatusChange(idx, 'MARKED')}
-                    className={`px-2 py-1 rounded-md transition-colors ${
+                    className={`px-3 py-1 rounded-md transition-all ${
                       sub.status === 'MARKED'
                         ? 'bg-primary text-white shadow-sm'
                         : 'text-on-surface-variant hover:text-on-surface'
@@ -160,7 +189,7 @@ export function EditMarksModal({
                   <button
                     type="button"
                     onClick={() => handleStatusChange(idx, 'AB')}
-                    className={`px-2 py-1 rounded-md transition-colors ${
+                    className={`px-3 py-1 rounded-md transition-all ${
                       sub.status === 'AB'
                         ? 'bg-fail text-white shadow-sm'
                         : 'text-on-surface-variant hover:text-on-surface'
@@ -170,60 +199,62 @@ export function EditMarksModal({
                   </button>
                 </div>
 
-                {/* Mark Inputs */}
-                {sub.status === 'MARKED' ? (
-                  sub.isPractical ? (
-                    <div className="flex items-center gap-2">
-                      <div className="flex flex-col">
-                        <label className="text-[9px] text-on-surface-variant font-bold uppercase">
+                {/* Mark Input Fields */}
+                <div className="flex items-center gap-3">
+                  {sub.status === 'AB' ? (
+                    <div className="text-xs font-bold text-fail bg-fail/10 px-4 py-1.5 rounded-lg border border-fail/20">
+                      Absent (0.0 GP)
+                    </div>
+                  ) : sub.isPractical ? (
+                    <div className="flex items-center gap-2 text-xs">
+                      <div>
+                        <label className="text-[10px] text-on-surface-variant uppercase font-bold block">
                           Theory (/75)
                         </label>
                         <input
                           type="number"
                           min="0"
                           max="75"
-                          value={sub.theory ?? 0}
+                          value={sub.theory ?? ''}
                           onChange={(e) => handleMarkChange(idx, 'theory', e.target.value)}
-                          className="w-16 px-2 py-1 bg-white border border-outline-variant/40 rounded text-xs font-mono font-bold focus:border-primary outline-none"
+                          className="w-16 px-2 py-1 bg-surface-container border border-outline-variant/40 rounded-md text-xs font-mono font-bold text-on-surface text-center outline-none focus:border-primary"
                         />
                       </div>
-                      <div className="flex flex-col">
-                        <label className="text-[9px] text-on-surface-variant font-bold uppercase">
+
+                      <div>
+                        <label className="text-[10px] text-on-surface-variant uppercase font-bold block">
                           Practical (/25)
                         </label>
                         <input
                           type="number"
                           min="0"
                           max="25"
-                          value={sub.practical ?? 0}
+                          value={sub.practical ?? ''}
                           onChange={(e) => handleMarkChange(idx, 'practical', e.target.value)}
-                          className="w-16 px-2 py-1 bg-white border border-outline-variant/40 rounded text-xs font-mono font-bold focus:border-primary outline-none"
+                          className="w-16 px-2 py-1 bg-surface-container border border-outline-variant/40 rounded-md text-xs font-mono font-bold text-on-surface text-center outline-none focus:border-primary"
                         />
                       </div>
-                      <div className="text-xs font-mono font-bold text-primary pl-1">
-                        = {(sub.theory ?? 0) + (sub.practical ?? 0)}
+
+                      <div className="pt-3 font-mono font-bold text-xs text-primary">
+                        = {(Number(sub.theory ?? 0) + Number(sub.practical ?? 0))}
                       </div>
                     </div>
                   ) : (
-                    <div className="flex flex-col">
-                      <label className="text-[9px] text-on-surface-variant font-bold uppercase">
+                    <div className="text-xs">
+                      <label className="text-[10px] text-on-surface-variant uppercase font-bold block">
                         Mark (/100)
                       </label>
                       <input
                         type="number"
                         min="0"
                         max="100"
-                        value={sub.mark ?? 0}
+                        value={sub.mark ?? ''}
                         onChange={(e) => handleMarkChange(idx, 'mark', e.target.value)}
-                        className="w-20 px-2 py-1 bg-white border border-outline-variant/40 rounded text-xs font-mono font-bold focus:border-primary outline-none"
+                        className="w-20 px-2 py-1 bg-surface-container border border-outline-variant/40 rounded-md text-xs font-mono font-bold text-on-surface text-center outline-none focus:border-primary"
                       />
                     </div>
-                  )
-                ) : (
-                  <div className="text-xs font-bold text-fail bg-fail/10 px-3 py-1.5 rounded-lg">
-                    Absent (0 GP)
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -232,17 +263,17 @@ export function EditMarksModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg text-xs font-semibold text-on-surface-variant hover:bg-surface-container transition-colors"
+              className="px-4 py-2 text-xs font-semibold text-on-surface-variant hover:text-on-surface hover:bg-surface-container rounded-lg transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="bg-primary hover:bg-on-primary-fixed-variant text-white px-5 py-2 rounded-lg text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 disabled:opacity-50"
+              className="px-5 py-2 text-xs font-bold bg-primary hover:bg-on-primary-fixed-variant text-white rounded-lg transition-colors shadow-md flex items-center gap-1.5 disabled:opacity-50"
             >
               <span className="material-symbols-outlined text-[16px]">sync</span>
-              {isSubmitting ? 'Recalculating...' : 'Save & Recalculate Result'}
+              {isSubmitting ? 'Saving & Recalculating...' : 'Save & Recalculate Result'}
             </button>
           </div>
         </form>

@@ -148,17 +148,28 @@ export async function updateStudentMarks(req: Request, res: Response): Promise<v
 
     const currentCaseId = student.caseId;
 
+    // Fetch case metadata to know exact practical subjects
+    const caseDoc = await CaseModel.findOne({ caseId: currentCaseId });
+    const subjectMap = new Map<string, { code: string; name: string; practical: boolean }>();
+    caseDoc?.subjects?.forEach((s: any) => subjectMap.set(s.code, s));
+
     for (const m of marks) {
       const code = m.subjectCode;
       if (!code) continue;
 
+      const subMeta = subjectMap.get(code);
+      const isPractical = subMeta?.practical ?? (m.isPractical === true);
+
       if (m.status === 'AB') {
         await MarkModel.findOneAndUpdate(
           { caseId: currentCaseId, studentId: student.studentId, subjectCode: code },
-          { caseId: currentCaseId, studentId: student.studentId, subjectCode: code, status: 'AB', mark: undefined, theory: undefined, practical: undefined },
+          {
+            $set: { caseId: currentCaseId, studentId: student.studentId, subjectCode: code, status: 'AB' },
+            $unset: { mark: 1, theory: 1, practical: 1 }
+          },
           { upsert: true, new: true }
         );
-      } else if (m.theory !== undefined || m.practical !== undefined) {
+      } else if (isPractical) {
         const theory = Number(m.theory ?? 0);
         const practical = Number(m.practical ?? 0);
         if (theory < 0 || theory > 75) {
@@ -171,7 +182,10 @@ export async function updateStudentMarks(req: Request, res: Response): Promise<v
         }
         await MarkModel.findOneAndUpdate(
           { caseId: currentCaseId, studentId: student.studentId, subjectCode: code },
-          { caseId: currentCaseId, studentId: student.studentId, subjectCode: code, status: 'MARKED', theory, practical, mark: undefined },
+          {
+            $set: { caseId: currentCaseId, studentId: student.studentId, subjectCode: code, status: 'MARKED', theory, practical },
+            $unset: { mark: 1 }
+          },
           { upsert: true, new: true }
         );
       } else {
@@ -182,7 +196,10 @@ export async function updateStudentMarks(req: Request, res: Response): Promise<v
         }
         await MarkModel.findOneAndUpdate(
           { caseId: currentCaseId, studentId: student.studentId, subjectCode: code },
-          { caseId: currentCaseId, studentId: student.studentId, subjectCode: code, status: 'MARKED', mark, theory: undefined, practical: undefined },
+          {
+            $set: { caseId: currentCaseId, studentId: student.studentId, subjectCode: code, status: 'MARKED', mark },
+            $unset: { theory: 1, practical: 1 }
+          },
           { upsert: true, new: true }
         );
       }

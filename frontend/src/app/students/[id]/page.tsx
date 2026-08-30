@@ -326,15 +326,27 @@ export default function StudentAuditPage() {
           isOpen={isEditModalOpen}
           studentId={student.studentId}
           studentName={student.name}
+          caseId={student.caseId || currentCase}
           initialSubjects={result.subjects.map((s) => ({
-            ...s,
-            subjectId: s.subjectCode
+            subjectId: s.subjectCode,
+            subjectCode: s.subjectCode,
+            subjectName: s.subjectName,
+            isCompulsory: s.isCompulsory,
+            isPractical: s.isPractical,
+            status: s.status,
+            markStatus: s.markStatus,
+            mark: s.mark,
+            theory: s.theory,
+            practical: s.practical,
+            totalMark: s.totalMark
           }))}
           onClose={() => setIsEditModalOpen(false)}
           onSuccess={(res) => {
             if (res.data?.result) {
               setResult(res.data.result);
             }
+            setSuccessMsg('Student marks updated and results recalculated successfully!');
+            setTimeout(() => setSuccessMsg(null), 4000);
             loadStudentData();
           }}
         />
