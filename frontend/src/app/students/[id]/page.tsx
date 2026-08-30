@@ -7,6 +7,7 @@ import { Header } from '@/components/Header';
 import { StatusBadge, GradeBadge } from '@/components/StatusBadge';
 import { CalculationTraceView } from '@/components/CalculationTraceView';
 import { EditMarksModal } from '@/components/EditMarksModal';
+import { AuditTraceSkeleton } from '@/components/LoadingState';
 import { api } from '@/lib/api';
 import { ResultData, StudentItem } from '@/lib/types';
 import { useCase } from '@/context/CaseContext';
@@ -115,6 +116,11 @@ export default function StudentAuditPage() {
             )}
           </div>
         </div>
+
+        {/* Loading State */}
+        {loading && !student && (
+          <AuditTraceSkeleton />
+        )}
 
         {/* Notifications */}
         {successMsg && (

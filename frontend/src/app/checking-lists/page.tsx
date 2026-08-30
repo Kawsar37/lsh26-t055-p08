@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { StatusBadge, GradeBadge } from '@/components/StatusBadge';
+import { TableSkeleton } from '@/components/LoadingState';
 import { api } from '@/lib/api';
 import { CheckingListItem } from '@/lib/types';
 import { useCase } from '@/context/CaseContext';
@@ -170,72 +171,78 @@ export default function CheckingListsPage() {
 
         {/* Checking List Table */}
         <div className="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/15 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-outline-variant/20 bg-surface-container-low/70 text-label-caps text-on-surface-variant">
-                  <th className="py-3.5 px-4 font-bold">STUDENT ID</th>
-                  <th className="py-3.5 px-4 font-bold">NAME</th>
-                  <th className="py-3.5 px-4 font-bold">CLASS</th>
-                  <th className="py-3.5 px-4 font-bold">SUBJECT</th>
-                  <th className="py-3.5 px-4 font-bold text-center">RECORDED VALUE</th>
-                  <th className="py-3.5 px-4 font-bold text-center">FINAL GPA</th>
-                  <th className="py-3.5 px-4 font-bold text-center">RESULT</th>
-                  <th className="py-3.5 px-4 font-bold">FLAG REASON</th>
-                  <th className="py-3.5 px-4 font-bold text-right">ACTION</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-outline-variant/10 text-body-md text-xs">
-                {items.length > 0 ? (
-                  items.map((item, idx) => (
-                    <tr key={`${item.caseId}_${item.studentId}_${item.subjectCode}_${idx}`} className="hover:bg-surface-container-low/50 transition-colors">
-                      <td className="py-3 px-4 font-mono font-bold text-primary">
-                        {item.studentCode}
-                      </td>
-                      <td className="py-3 px-4 font-semibold text-on-surface">
-                        {item.studentName}
-                      </td>
-                      <td className="py-3 px-4 text-on-surface-variant">
-                        {item.className}
-                      </td>
-                      <td className="py-3 px-4 font-medium text-on-surface">
-                        {item.subjectName} ({item.subjectCode})
-                      </td>
-                      <td className="py-3 px-4 text-center font-mono font-bold text-on-surface">
-                        {item.problematicValue}
-                      </td>
-                      <td className="py-3 px-4 text-center font-mono font-bold">
-                        {item.finalGpa.toFixed(2)}
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <StatusBadge status={item.overallResult} size="sm" />
-                      </td>
-                      <td className="py-3 px-4 text-on-surface-variant text-[11px] max-w-xs">
-                        <span className="font-semibold text-review bg-review/10 px-2 py-0.5 rounded">
-                          {item.reason}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <Link
-                          href={`/students/${item.studentId}?caseId=${item.caseId || activeCase}`}
-                          className="px-2.5 py-1 bg-primary text-white hover:bg-on-primary-fixed-variant font-bold text-xs rounded transition-colors inline-flex items-center gap-1 shadow-sm"
-                        >
-                          <span className="material-symbols-outlined text-[14px]">policy</span>
-                          Open Trace
-                        </Link>
+          {loading && items.length === 0 ? (
+            <div className="py-6">
+              <TableSkeleton rows={6} cols={9} />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-outline-variant/20 bg-surface-container-low/70 text-label-caps text-on-surface-variant">
+                    <th className="py-3.5 px-4 font-bold">STUDENT ID</th>
+                    <th className="py-3.5 px-4 font-bold">NAME</th>
+                    <th className="py-3.5 px-4 font-bold">CLASS</th>
+                    <th className="py-3.5 px-4 font-bold">SUBJECT</th>
+                    <th className="py-3.5 px-4 font-bold text-center">RECORDED VALUE</th>
+                    <th className="py-3.5 px-4 font-bold text-center">FINAL GPA</th>
+                    <th className="py-3.5 px-4 font-bold text-center">RESULT</th>
+                    <th className="py-3.5 px-4 font-bold">FLAG REASON</th>
+                    <th className="py-3.5 px-4 font-bold text-right">ACTION</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-outline-variant/10 text-body-md text-xs">
+                  {items.length > 0 ? (
+                    items.map((item, idx) => (
+                      <tr key={`${item.caseId}_${item.studentId}_${item.subjectCode}_${idx}`} className="hover:bg-surface-container-low/50 transition-colors">
+                        <td className="py-3 px-4 font-mono font-bold text-primary">
+                          {item.studentCode}
+                        </td>
+                        <td className="py-3 px-4 font-semibold text-on-surface">
+                          {item.studentName}
+                        </td>
+                        <td className="py-3 px-4 text-on-surface-variant">
+                          {item.className}
+                        </td>
+                        <td className="py-3 px-4 font-medium text-on-surface">
+                          {item.subjectName} ({item.subjectCode})
+                        </td>
+                        <td className="py-3 px-4 text-center font-mono font-bold text-on-surface">
+                          {item.problematicValue}
+                        </td>
+                        <td className="py-3 px-4 text-center font-mono font-bold">
+                          {item.finalGpa.toFixed(2)}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <StatusBadge status={item.overallResult} size="sm" />
+                        </td>
+                        <td className="py-3 px-4 text-on-surface-variant text-[11px] max-w-xs">
+                          <span className="font-semibold text-review bg-review/10 px-2 py-0.5 rounded">
+                            {item.reason}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <Link
+                            href={`/students/${item.studentId}?caseId=${item.caseId || activeCase}`}
+                            className="px-2.5 py-1 bg-primary text-white hover:bg-on-primary-fixed-variant font-bold text-xs rounded transition-colors inline-flex items-center gap-1 shadow-sm"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">policy</span>
+                            Open Trace
+                          </Link>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={9} className="py-12 text-center text-on-surface-variant">
+                        No students found on this verification list for {activeCase}.
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={9} className="py-12 text-center text-on-surface-variant">
-                      {loading ? 'Checking records...' : `No students found on this verification list for ${activeCase}.`}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </>

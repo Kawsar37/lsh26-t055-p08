@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { MetricCard } from '@/components/MetricCard';
 import { StatusBadge, GradeBadge } from '@/components/StatusBadge';
+import { MetricCardSkeleton, ChartSkeleton, TableSkeleton } from '@/components/LoadingState';
 import { api } from '@/lib/api';
 import { DashboardStats } from '@/lib/types';
 import { useCase } from '@/context/CaseContext';
@@ -33,7 +34,7 @@ export default function DashboardPage() {
       setError(null);
     } catch (err: any) {
       console.error('Error loading dashboard stats:', err);
-      setError(err.message || 'Failed to load dashboard data. Please make sure the backend is running.');
+      setError(err.message || 'Failed to load dashboard data. Connecting to ResultFlow API...');
     } finally {
       setLoading(false);
     }
@@ -103,45 +104,53 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* 5 KPI Metric Cards Matching Stitch UI */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          <MetricCard
-            label="TOTAL STUDENTS"
-            value={loading ? '...' : stats?.totalStudents ?? 0}
-            icon="groups"
-          />
-          <MetricCard
-            label="PASSED"
-            value={loading ? '...' : stats?.passed ?? 0}
-            icon="check_circle"
-            valueColor="text-[#10B981]"
-            trend={stats ? `${stats.passRate}%` : undefined}
-            trendPositive={true}
-          />
-          <MetricCard
-            label="FAILED"
-            value={loading ? '...' : stats?.failed ?? 0}
-            icon="cancel"
-            valueColor="text-[#F43F5E]"
-            trend={stats && stats.totalStudents > 0 ? `${((stats.failed / stats.totalStudents) * 100).toFixed(0)}%` : undefined}
-            trendPositive={false}
-          />
-          <MetricCard
-            label="PASS RATE"
-            value={loading ? '...' : `${stats?.passRate ?? 0}%`}
-            icon="percent"
-            valueColor="text-primary"
-          />
-          <Link href="/checking-lists">
+        {/* 5 KPI Metric Cards */}
+        {loading && !stats ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <MetricCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <MetricCard
-              label="NEEDS REVIEW"
-              value={loading ? '...' : stats?.needsReview ?? 0}
-              icon="warning"
-              valueColor="text-[#F59E0B]"
-              subtext="Flagged cases"
+              label="TOTAL STUDENTS"
+              value={stats?.totalStudents ?? 0}
+              icon="groups"
             />
-          </Link>
-        </div>
+            <MetricCard
+              label="PASSED"
+              value={stats?.passed ?? 0}
+              icon="check_circle"
+              valueColor="text-[#10B981]"
+              trend={stats ? `${stats.passRate}%` : undefined}
+              trendPositive={true}
+            />
+            <MetricCard
+              label="FAILED"
+              value={stats?.failed ?? 0}
+              icon="cancel"
+              valueColor="text-[#F43F5E]"
+              trend={stats && stats.totalStudents > 0 ? `${((stats.failed / stats.totalStudents) * 100).toFixed(0)}%` : undefined}
+              trendPositive={false}
+            />
+            <MetricCard
+              label="PASS RATE"
+              value={`${stats?.passRate ?? 0}%`}
+              icon="percent"
+              valueColor="text-primary"
+            />
+            <Link href="/checking-lists">
+              <MetricCard
+                label="NEEDS REVIEW"
+                value={stats?.needsReview ?? 0}
+                icon="warning"
+                valueColor="text-[#F59E0B]"
+                subtext="Flagged cases"
+              />
+            </Link>
+          </div>
+        )}
 
         {/* Visual Charts Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -158,7 +167,9 @@ export default function DashboardPage() {
             </div>
 
             <div className="h-64 w-full">
-              {stats?.classComparative && stats.classComparative.length > 0 ? (
+              {loading && !stats ? (
+                <ChartSkeleton />
+              ) : stats?.classComparative && stats.classComparative.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={stats.classComparative} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e6eeff" />
@@ -174,7 +185,7 @@ export default function DashboardPage() {
                 </ResponsiveContainer>
               ) : (
                 <div className="h-full flex items-center justify-center text-on-surface-variant text-xs">
-                  {loading ? 'Loading class comparisons...' : 'No comparative class data available.'}
+                  No comparative class data available.
                 </div>
               )}
             </div>
@@ -193,7 +204,9 @@ export default function DashboardPage() {
             </div>
 
             <div className="h-64 w-full">
-              {gradeDistributionData.length > 0 ? (
+              {loading && !stats ? (
+                <ChartSkeleton />
+              ) : gradeDistributionData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={gradeDistributionData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e6eeff" />
@@ -207,7 +220,7 @@ export default function DashboardPage() {
                 </ResponsiveContainer>
               ) : (
                 <div className="h-full flex items-center justify-center text-on-surface-variant text-xs">
-                  {loading ? 'Loading grade data...' : 'No distribution data.'}
+                  No distribution data.
                 </div>
               )}
             </div>
@@ -237,73 +250,77 @@ export default function DashboardPage() {
           </div>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-outline-variant/20 bg-surface-container-low/60 text-label-caps text-on-surface-variant">
-                  <th className="py-3 px-4 font-bold">STUDENT ID</th>
-                  <th className="py-3 px-4 font-bold">NAME</th>
-                  <th className="py-3 px-4 font-bold">CLASS</th>
-                  <th className="py-3 px-4 font-bold text-center">FINAL GPA</th>
-                  <th className="py-3 px-4 font-bold text-center">GRADE</th>
-                  <th className="py-3 px-4 font-bold text-center">RESULT</th>
-                  <th className="py-3 px-4 font-bold text-center">REVIEW STATUS</th>
-                  <th className="py-3 px-4 font-bold text-right">ACTION</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-outline-variant/10 text-body-md">
-                {stats?.recentAudit && stats.recentAudit.length > 0 ? (
-                  stats.recentAudit.map((r) => (
-                    <tr key={`${r.caseId}_${r.studentId}`} className="hover:bg-surface-container-low/50 transition-colors">
-                      <td className="py-3 px-4 font-mono font-bold text-primary text-xs">
-                        {r.studentCode}
-                      </td>
-                      <td className="py-3 px-4 font-semibold text-on-surface text-xs">
-                        {r.studentName}
-                      </td>
-                      <td className="py-3 px-4 text-xs text-on-surface-variant">
-                        {r.className}
-                      </td>
-                      <td className="py-3 px-4 text-center font-mono font-bold text-xs">
-                        {r.finalGpa.toFixed(2)}
-                        {r.hasCompulsoryFailure && (
-                          <span className="text-[10px] text-fail block font-normal">
-                            Override (Raw: {r.uncancelledGpa.toFixed(2)})
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <GradeBadge grade={r.letterGrade} />
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <StatusBadge status={r.overallResult} size="sm" />
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        {r.isFlaggedForReview ? (
-                          <StatusBadge status="NEEDS_REVIEW" size="sm" />
-                        ) : (
-                          <span className="text-[11px] text-on-surface-variant font-medium">Verified</span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <Link
-                          href={`/students/${r.studentId}?caseId=${r.caseId || activeCase}`}
-                          className="px-2.5 py-1 bg-surface-container hover:bg-surface-container-high text-primary font-bold text-xs rounded transition-colors inline-flex items-center gap-1"
-                        >
-                          <span className="material-symbols-outlined text-[14px]">policy</span>
-                          Audit Trace
-                        </Link>
+            {loading && !stats ? (
+              <TableSkeleton rows={5} cols={8} />
+            ) : (
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-outline-variant/20 bg-surface-container-low/60 text-label-caps text-on-surface-variant">
+                    <th className="py-3 px-4 font-bold">STUDENT ID</th>
+                    <th className="py-3 px-4 font-bold">NAME</th>
+                    <th className="py-3 px-4 font-bold">CLASS</th>
+                    <th className="py-3 px-4 font-bold text-center">FINAL GPA</th>
+                    <th className="py-3 px-4 font-bold text-center">GRADE</th>
+                    <th className="py-3 px-4 font-bold text-center">RESULT</th>
+                    <th className="py-3 px-4 font-bold text-center">REVIEW STATUS</th>
+                    <th className="py-3 px-4 font-bold text-right">ACTION</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-outline-variant/10 text-body-md">
+                  {stats?.recentAudit && stats.recentAudit.length > 0 ? (
+                    stats.recentAudit.map((r) => (
+                      <tr key={`${r.caseId}_${r.studentId}`} className="hover:bg-surface-container-low/50 transition-colors">
+                        <td className="py-3 px-4 font-mono font-bold text-primary text-xs">
+                          {r.studentCode}
+                        </td>
+                        <td className="py-3 px-4 font-semibold text-on-surface text-xs">
+                          {r.studentName}
+                        </td>
+                        <td className="py-3 px-4 text-xs text-on-surface-variant">
+                          {r.className}
+                        </td>
+                        <td className="py-3 px-4 text-center font-mono font-bold text-xs">
+                          {r.finalGpa.toFixed(2)}
+                          {r.hasCompulsoryFailure && (
+                            <span className="text-[10px] text-fail block font-normal">
+                              Override (Raw: {r.uncancelledGpa.toFixed(2)})
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <GradeBadge grade={r.letterGrade} />
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <StatusBadge status={r.overallResult} size="sm" />
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          {r.isFlaggedForReview ? (
+                            <StatusBadge status="NEEDS_REVIEW" size="sm" />
+                          ) : (
+                            <span className="text-[11px] text-on-surface-variant font-medium">Verified</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <Link
+                            href={`/students/${r.studentId}?caseId=${r.caseId || activeCase}`}
+                            className="px-2.5 py-1 bg-surface-container hover:bg-surface-container-high text-primary font-bold text-xs rounded transition-colors inline-flex items-center gap-1"
+                          >
+                            <span className="material-symbols-outlined text-[14px]">policy</span>
+                            Audit Trace
+                          </Link>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={8} className="py-8 text-center text-on-surface-variant text-xs">
+                        No calculation records found. Run <code className="bg-surface-container px-1 py-0.5 rounded">npm run seed:fixture</code>.
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={8} className="py-8 text-center text-on-surface-variant text-xs">
-                      {loading ? 'Loading calculation records...' : 'No calculation records found. Run `npm run seed:fixture`.'}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       </div>

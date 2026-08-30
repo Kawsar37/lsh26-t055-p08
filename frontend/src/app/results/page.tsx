@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Header } from '@/components/Header';
 import { StatusBadge, GradeBadge } from '@/components/StatusBadge';
+import { TableSkeleton } from '@/components/LoadingState';
 import { api } from '@/lib/api';
 import { ResultData } from '@/lib/types';
 import { useCase } from '@/context/CaseContext';
@@ -115,88 +116,94 @@ export default function ResultsPage() {
 
         {/* Results Table */}
         <div className="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/15 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-outline-variant/20 bg-surface-container-low/70 text-label-caps text-on-surface-variant">
-                  <th className="py-3.5 px-4 font-bold">RANK</th>
-                  <th className="py-3.5 px-4 font-bold">STUDENT ID</th>
-                  <th className="py-3.5 px-4 font-bold">NAME</th>
-                  <th className="py-3.5 px-4 font-bold">CLASS</th>
-                  <th className="py-3.5 px-4 font-bold text-center">COMPULSORY GP</th>
-                  <th className="py-3.5 px-4 font-bold text-center">OPT BONUS</th>
-                  <th className="py-3.5 px-4 font-bold text-center">FINAL GPA</th>
-                  <th className="py-3.5 px-4 font-bold text-center">GRADE</th>
-                  <th className="py-3.5 px-4 font-bold text-center">STATUS</th>
-                  <th className="py-3.5 px-4 font-bold text-right">ACTIONS</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-outline-variant/10 text-body-md text-xs">
-                {results.length > 0 ? (
-                  results.map((r: any, idx) => (
-                    <tr key={`${r.caseId}_${r.studentId}`} className="hover:bg-surface-container-low/50 transition-colors">
-                      <td className="py-3 px-4 font-mono font-bold text-on-surface-variant">
-                        #{idx + 1}
-                      </td>
-                      <td className="py-3 px-4 font-mono font-bold text-primary">
-                        {r.studentId}
-                      </td>
-                      <td className="py-3 px-4 font-semibold text-on-surface">
-                        {r.studentName}
-                      </td>
-                      <td className="py-3 px-4 text-on-surface-variant">
-                        {r.className}
-                      </td>
-                      <td className="py-3 px-4 text-center font-mono font-semibold">
-                        {r.compulsoryGpTotal?.toFixed(2)}
-                      </td>
-                      <td className="py-3 px-4 text-center font-mono font-semibold text-pass">
-                        +{r.optionalBonus?.toFixed(2)}
-                      </td>
-                      <td className="py-3 px-4 text-center font-mono font-extrabold text-sm">
-                        {r.finalGpa?.toFixed(2)}
-                        {r.hasCompulsoryFailure && (
-                          <span className="text-[10px] text-fail block font-normal font-sans">
-                            (Raw: {r.uncancelledGpa?.toFixed(2)})
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <GradeBadge grade={r.letterGrade} />
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <StatusBadge status={r.overallResult} size="sm" />
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Link
-                            href={`/students/${r.studentId}?caseId=${r.caseId || activeCase}`}
-                            className="px-2.5 py-1 bg-surface-container hover:bg-surface-container-high text-primary font-bold text-xs rounded transition-colors inline-flex items-center gap-1"
-                          >
-                            <span className="material-symbols-outlined text-[14px]">policy</span>
-                            Audit
-                          </Link>
-                          <Link
-                            href={`/print/${r.studentId}?caseId=${r.caseId || activeCase}`}
-                            className="p-1 hover:bg-surface-container text-on-surface-variant hover:text-on-surface rounded transition-colors"
-                            title="Print"
-                          >
-                            <span className="material-symbols-outlined text-[16px]">print</span>
-                          </Link>
-                        </div>
+          {loading && results.length === 0 ? (
+            <div className="py-6">
+              <TableSkeleton rows={8} cols={10} />
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-outline-variant/20 bg-surface-container-low/70 text-label-caps text-on-surface-variant">
+                    <th className="py-3.5 px-4 font-bold">RANK</th>
+                    <th className="py-3.5 px-4 font-bold">STUDENT ID</th>
+                    <th className="py-3.5 px-4 font-bold">NAME</th>
+                    <th className="py-3.5 px-4 font-bold">CLASS</th>
+                    <th className="py-3.5 px-4 font-bold text-center">COMPULSORY GP</th>
+                    <th className="py-3.5 px-4 font-bold text-center">OPT BONUS</th>
+                    <th className="py-3.5 px-4 font-bold text-center">FINAL GPA</th>
+                    <th className="py-3.5 px-4 font-bold text-center">GRADE</th>
+                    <th className="py-3.5 px-4 font-bold text-center">STATUS</th>
+                    <th className="py-3.5 px-4 font-bold text-right">ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-outline-variant/10 text-body-md text-xs">
+                  {results.length > 0 ? (
+                    results.map((r: any, idx) => (
+                      <tr key={`${r.caseId}_${r.studentId}`} className="hover:bg-surface-container-low/50 transition-colors">
+                        <td className="py-3 px-4 font-mono font-bold text-on-surface-variant">
+                          #{idx + 1}
+                        </td>
+                        <td className="py-3 px-4 font-mono font-bold text-primary">
+                          {r.studentId}
+                        </td>
+                        <td className="py-3 px-4 font-semibold text-on-surface">
+                          {r.studentName}
+                        </td>
+                        <td className="py-3 px-4 text-on-surface-variant">
+                          {r.className}
+                        </td>
+                        <td className="py-3 px-4 text-center font-mono font-semibold">
+                          {r.compulsoryGpTotal?.toFixed(2)}
+                        </td>
+                        <td className="py-3 px-4 text-center font-mono font-semibold text-pass">
+                          +{r.optionalBonus?.toFixed(2)}
+                        </td>
+                        <td className="py-3 px-4 text-center font-mono font-extrabold text-sm">
+                          {r.finalGpa?.toFixed(2)}
+                          {r.hasCompulsoryFailure && (
+                            <span className="text-[10px] text-fail block font-normal font-sans">
+                              (Raw: {r.uncancelledGpa?.toFixed(2)})
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <GradeBadge grade={r.letterGrade} />
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <StatusBadge status={r.overallResult} size="sm" />
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Link
+                              href={`/students/${r.studentId}?caseId=${r.caseId || activeCase}`}
+                              className="px-2.5 py-1 bg-surface-container hover:bg-surface-container-high text-primary font-bold text-xs rounded transition-colors inline-flex items-center gap-1"
+                            >
+                              <span className="material-symbols-outlined text-[14px]">policy</span>
+                              Audit
+                            </Link>
+                            <Link
+                              href={`/print/${r.studentId}?caseId=${r.caseId || activeCase}`}
+                              className="p-1 hover:bg-surface-container text-on-surface-variant hover:text-on-surface rounded transition-colors"
+                              title="Print"
+                            >
+                              <span className="material-symbols-outlined text-[16px]">print</span>
+                            </Link>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={10} className="py-12 text-center text-on-surface-variant">
+                        No results found.
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={10} className="py-12 text-center text-on-surface-variant">
-                      {loading ? 'Loading results...' : 'No results found.'}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </>

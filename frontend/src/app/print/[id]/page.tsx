@@ -5,6 +5,7 @@ import { useParams, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { useCase } from '@/context/CaseContext';
+import { LoadingSpinner } from '@/components/LoadingState';
 
 export default function PrintMarksheetPage() {
   const params = useParams();
@@ -33,10 +34,10 @@ export default function PrintMarksheetPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center space-y-2">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-xs text-on-surface-variant">Generating official marksheet...</p>
-        </div>
+        <LoadingSpinner
+          message="Generating official marksheet..."
+          subtext="Formatting student transcript and scale 5.00 GPA calculation..."
+        />
       </div>
     );
   }

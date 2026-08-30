@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Header } from '@/components/Header';
 import { MetricCard } from '@/components/MetricCard';
+import { MetricCardSkeleton, ChartSkeleton } from '@/components/LoadingState';
 import { api } from '@/lib/api';
 import { ClassSummaryData } from '@/lib/types';
 import { useCase } from '@/context/CaseContext';
@@ -94,37 +95,45 @@ export default function ClassSummaryPage() {
         </div>
 
         {/* 5 KPI Metric Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          <MetricCard
-            label="TOTAL STUDENTS"
-            value={loading ? '...' : summary?.totalStudents ?? 0}
-            icon="groups"
-          />
-          <MetricCard
-            label="PASS RATE"
-            value={loading ? '...' : `${summary?.passRate ?? 0}%`}
-            icon="percent"
-            valueColor="text-[#10B981]"
-          />
-          <MetricCard
-            label="AVERAGE GPA"
-            value={loading ? '...' : summary?.averageGpa?.toFixed(2) ?? '0.00'}
-            icon="speed"
-            valueColor="text-primary"
-          />
-          <MetricCard
-            label="FAILED STUDENTS"
-            value={loading ? '...' : summary?.failed ?? 0}
-            icon="cancel"
-            valueColor="text-[#F43F5E]"
-          />
-          <MetricCard
-            label="NEEDS REVIEW"
-            value={loading ? '...' : summary?.needsReview ?? 0}
-            icon="warning"
-            valueColor="text-[#F59E0B]"
-          />
-        </div>
+        {loading && !summary ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <MetricCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <MetricCard
+              label="TOTAL STUDENTS"
+              value={summary?.totalStudents ?? 0}
+              icon="groups"
+            />
+            <MetricCard
+              label="PASS RATE"
+              value={`${summary?.passRate ?? 0}%`}
+              icon="percent"
+              valueColor="text-[#10B981]"
+            />
+            <MetricCard
+              label="AVERAGE GPA"
+              value={summary?.averageGpa?.toFixed(2) ?? '0.00'}
+              icon="speed"
+              valueColor="text-primary"
+            />
+            <MetricCard
+              label="FAILED STUDENTS"
+              value={summary?.failed ?? 0}
+              icon="cancel"
+              valueColor="text-[#F43F5E]"
+            />
+            <MetricCard
+              label="NEEDS REVIEW"
+              value={summary?.needsReview ?? 0}
+              icon="warning"
+              valueColor="text-[#F59E0B]"
+            />
+          </div>
+        )}
 
         {/* Charts & Subject Bottleneck Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -141,7 +150,9 @@ export default function ClassSummaryPage() {
             </div>
 
             <div className="h-64 w-full">
-              {gradeData.length > 0 ? (
+              {loading && !summary ? (
+                <ChartSkeleton />
+              ) : gradeData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={gradeData} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#e6eeff" />
@@ -155,7 +166,7 @@ export default function ClassSummaryPage() {
                 </ResponsiveContainer>
               ) : (
                 <div className="h-full flex items-center justify-center text-xs text-on-surface-variant">
-                  {loading ? 'Loading...' : 'No grade data.'}
+                  No grade data.
                 </div>
               )}
             </div>
