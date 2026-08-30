@@ -164,7 +164,7 @@ export function EditMarksModal({
                 key={sub.subjectCode || idx}
                 className="p-3 rounded-xl bg-surface-container-low border border-outline-variant/20 flex flex-wrap items-center justify-between gap-3"
               >
-                <div className="w-48">
+                <div className="w-full sm:w-48">
                   <span className="font-semibold text-xs text-on-surface block truncate">
                     {sub.subjectName}
                   </span>

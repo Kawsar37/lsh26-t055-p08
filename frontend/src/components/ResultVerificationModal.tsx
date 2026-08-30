@@ -35,7 +35,7 @@ export function ResultVerificationModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
       <div className="bg-surface-container-lowest w-full max-w-4xl max-h-[90vh] rounded-2xl shadow-2xl border border-outline-variant/30 flex flex-col overflow-hidden animate-scaleUp">
         {/* Modal Header */}
-        <div className="px-6 py-4 bg-surface-container-low border-b border-outline-variant/20 flex items-center justify-between">
+        <div className="px-4 sm:px-6 py-4 bg-surface-container-low border-b border-outline-variant/20 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
               <span className="material-symbols-outlined text-[24px]">verified</span>
@@ -65,7 +65,7 @@ export function ResultVerificationModal({
         </div>
 
         {/* Modal Scrollable Body */}
-        <div className="p-6 overflow-y-auto space-y-8 flex-1 text-on-surface">
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-8 flex-1 text-on-surface">
           {/* Chronological Step 1: Subject Evaluation */}
           <section className="space-y-3">
             <div className="flex items-center gap-2">

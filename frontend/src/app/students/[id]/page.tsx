@@ -89,10 +89,10 @@ export default function StudentAuditPage() {
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <button
               onClick={() => setIsEditModalOpen(true)}
-              className="bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold py-2 px-4 rounded-lg transition-colors flex items-center gap-1.5 border border-outline-variant/30 text-xs shadow-sm"
+              className="bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold py-2 px-3 sm:px-4 rounded-lg transition-colors flex items-center gap-1.5 border border-outline-variant/30 text-xs shadow-sm"
             >
               <span className="material-symbols-outlined text-[16px]">edit</span>
               Edit Marks
@@ -100,7 +100,7 @@ export default function StudentAuditPage() {
 
             <button
               onClick={() => setIsVerificationModalOpen(true)}
-              className="bg-primary hover:bg-on-primary-fixed-variant text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm text-xs"
+              className="bg-primary hover:bg-on-primary-fixed-variant text-white font-bold py-2 px-3 sm:px-4 rounded-lg transition-colors flex items-center gap-1.5 shadow-sm text-xs"
             >
               <span className="material-symbols-outlined text-[16px]">verified</span>
               Verify Result
@@ -109,7 +109,7 @@ export default function StudentAuditPage() {
             <button
               onClick={handleRecalculate}
               disabled={isRecalculating}
-              className="bg-surface-container hover:bg-surface-container-high text-primary font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-1.5 border border-outline-variant/30 text-xs shadow-sm disabled:opacity-50"
+              className="bg-surface-container hover:bg-surface-container-high text-primary font-bold py-2 px-3 sm:px-4 rounded-lg transition-colors flex items-center gap-1.5 border border-outline-variant/30 text-xs shadow-sm disabled:opacity-50"
             >
               <span className="material-symbols-outlined text-[16px]">sync</span>
               {isRecalculating ? 'Recalculating...' : 'Recalculate'}
@@ -118,7 +118,7 @@ export default function StudentAuditPage() {
             {student && (
               <Link
                 href={`/print/${student.studentId}?caseId=${student.caseId || currentCase}`}
-                className="bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold py-2 px-4 rounded-lg transition-colors flex items-center gap-1.5 border border-outline-variant/30 text-xs shadow-sm"
+                className="bg-surface-container hover:bg-surface-container-high text-on-surface font-semibold py-2 px-3 sm:px-4 rounded-lg transition-colors flex items-center gap-1.5 border border-outline-variant/30 text-xs shadow-sm"
               >
                 <span className="material-symbols-outlined text-[16px]">print</span>
                 Print Marksheet
@@ -149,13 +149,13 @@ export default function StudentAuditPage() {
 
         {/* Student Profile Card matching Stitch UI */}
         {student && (
-          <div className="bg-surface-container-lowest rounded-2xl p-6 shadow-sm border border-outline-variant/15 flex flex-wrap items-center justify-between gap-6">
+          <div className="bg-surface-container-lowest rounded-2xl p-4 sm:p-6 shadow-sm border border-outline-variant/15 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-2xl bg-primary-container text-white flex items-center justify-center font-bold text-xl shadow-md">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-primary-container text-white flex items-center justify-center font-bold text-lg sm:text-xl shadow-md shrink-0">
                 {student.name.substring(0, 2).toUpperCase()}
               </div>
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <h1 className="font-headline-md font-bold text-on-surface">{student.name}</h1>
                   <span className="font-mono text-xs bg-primary/10 text-primary font-bold px-2 py-0.5 rounded">
                     {student.studentId}
@@ -164,11 +164,11 @@ export default function StudentAuditPage() {
                     Fixture Dataset: {student.caseId}
                   </span>
                 </div>
-                <div className="flex flex-wrap items-center gap-3 text-xs text-on-surface-variant mt-1.5 font-medium">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-on-surface-variant mt-1.5 font-medium">
                   <span>Class: <strong className="text-on-surface">{student.className}</strong></span>
-                  <span>•</span>
+                  <span className="hidden sm:inline">•</span>
                   <span>Roll: <strong className="text-on-surface">#{student.rollNumber}</strong></span>
-                  <span>•</span>
+                  <span className="hidden sm:inline">•</span>
                   <span>Optional 4th Subject: <strong className="text-on-surface font-mono">{student.optionalSubjectCode}</strong></span>
                 </div>
               </div>
@@ -176,7 +176,7 @@ export default function StudentAuditPage() {
 
             {/* GPA Summary Highlights */}
             {result && (
-              <div className="flex items-center gap-4 bg-surface-container-low p-4 rounded-xl border border-outline-variant/20">
+              <div className="flex items-center justify-around sm:justify-start gap-2 sm:gap-4 bg-surface-container-low p-3 sm:p-4 rounded-xl border border-outline-variant/20 w-full md:w-auto">
                 <div className="flex flex-col text-center px-3 border-r border-outline-variant/20">
                   <span className="text-label-caps text-on-surface-variant font-bold">FINAL GPA</span>
                   <span className={`font-display-gpa text-3xl font-extrabold ${result.overallResult === 'PASS' ? 'text-primary' : 'text-fail'}`}>

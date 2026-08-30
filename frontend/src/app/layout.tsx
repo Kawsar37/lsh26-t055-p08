@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Sidebar } from '@/components/Sidebar';
 import { CaseProvider } from '@/context/CaseContext';
+import { NavProvider } from '@/context/NavContext';
 
 export const metadata: Metadata = {
   title: 'ResultFlow — School Result Processing & GPA Engine',
@@ -17,12 +18,14 @@ export default function RootLayout({
     <html lang="en">
       <body className="bg-background font-body-md text-on-surface antialiased min-h-screen">
         <CaseProvider>
-          <Sidebar />
-          <div className="pl-72 flex flex-col min-h-screen">
-            <main className="pt-16 p-md flex-1">
-              {children}
-            </main>
-          </div>
+          <NavProvider>
+            <Sidebar />
+            <div className="pl-0 lg:pl-72 flex flex-col min-h-screen transition-all duration-300">
+              <main className="pt-16 p-3 sm:p-4 md:p-6 lg:p-8 flex-1 w-full max-w-full overflow-x-hidden">
+                {children}
+              </main>
+            </div>
+          </NavProvider>
         </CaseProvider>
       </body>
     </html>

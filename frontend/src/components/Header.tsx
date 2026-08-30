@@ -3,6 +3,7 @@
 import React from 'react';
 import { usePathname } from 'next/navigation';
 import { useCase } from '@/context/CaseContext';
+import { useNav } from '@/context/NavContext';
 
 interface HeaderProps {
   title?: string;
@@ -13,6 +14,7 @@ interface HeaderProps {
 export function Header({ title, subtitle, onSearch }: HeaderProps) {
   const pathname = usePathname();
   const { activeCase, setActiveCase, availableCases } = useCase();
+  const { toggleMobileSidebar } = useNav();
 
   const getPageName = () => {
     if (title) return title;
@@ -22,46 +24,58 @@ export function Header({ title, subtitle, onSearch }: HeaderProps) {
     if (pathname.startsWith('/results')) return 'Published Results';
     if (pathname.startsWith('/checking-lists')) return 'Verification & Checking Lists';
     if (pathname.startsWith('/class-summary')) return 'Class Performance Summary';
+    if (pathname.startsWith('/rule-tester')) return 'P08 Rule Tester';
     if (pathname.startsWith('/import')) return 'Import Marks (CSV Engine)';
     if (pathname.startsWith('/print/')) return 'Official Marksheet Preview';
     return 'ResultFlow';
   };
 
   return (
-    <header className="fixed top-0 left-72 right-0 h-16 bg-surface/90 backdrop-blur-xl z-40 border-b border-outline-variant/20 px-md flex items-center justify-between no-print">
-      <div className="flex flex-col">
-        <nav className="flex items-center gap-xs text-label-caps text-on-surface-variant mb-[2px]">
-          <span>P08 Public Fixture</span>
-          <span className="material-symbols-outlined text-[12px]">chevron_right</span>
-          <span className="text-primary font-bold">{activeCase === 'ALL' ? 'All Public Cases' : activeCase}</span>
-        </nav>
-        <div className="text-title-sm font-bold text-on-surface">{getPageName()}</div>
+    <header className="fixed top-0 left-0 lg:left-72 right-0 h-16 bg-surface/95 backdrop-blur-xl z-40 border-b border-outline-variant/20 px-3 sm:px-6 flex items-center justify-between no-print transition-all duration-300">
+      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+        {/* Mobile Hamburger Toggle Button */}
+        <button
+          onClick={toggleMobileSidebar}
+          className="lg:hidden p-2 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors shrink-0 flex items-center justify-center"
+          aria-label="Toggle navigation menu"
+        >
+          <span className="material-symbols-outlined text-[24px]">menu</span>
+        </button>
+
+        <div className="flex flex-col min-w-0">
+          <nav className="hidden sm:flex items-center gap-xs text-label-caps text-on-surface-variant mb-[2px]">
+            <span>P08 Public Fixture</span>
+            <span className="material-symbols-outlined text-[12px]">chevron_right</span>
+            <span className="text-primary font-bold">{activeCase === 'ALL' ? 'All Public Cases' : activeCase}</span>
+          </nav>
+          <div className="text-sm sm:text-title-sm font-bold text-on-surface truncate">{getPageName()}</div>
+        </div>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
         {/* Dataset / Case Selector Dropdown */}
-        <div className="flex items-center gap-2 bg-surface-container px-3 py-1 rounded-xl border border-outline-variant/30">
-          <span className="material-symbols-outlined text-primary text-[18px]">dataset</span>
-          <label className="text-[10px] font-extrabold text-on-surface-variant uppercase tracking-wider">
+        <div className="flex items-center gap-1.5 sm:gap-2 bg-surface-container px-2.5 sm:px-3 py-1 rounded-xl border border-outline-variant/30 text-xs">
+          <span className="material-symbols-outlined text-primary text-[16px] sm:text-[18px]">dataset</span>
+          <label className="text-[10px] font-extrabold text-on-surface-variant uppercase tracking-wider hidden md:inline">
             Dataset:
           </label>
           <select
             value={activeCase}
             onChange={(e) => setActiveCase(e.target.value)}
-            className="bg-transparent text-xs font-bold text-primary outline-none cursor-pointer"
+            className="bg-transparent text-xs font-bold text-primary outline-none cursor-pointer max-w-[120px] sm:max-w-none"
           >
             {availableCases.length > 0 ? (
               <>
                 {availableCases.map((c) => (
                   <option key={c.caseId} value={c.caseId}>
-                    {c.caseId} ({c.totalStudents} students)
+                    {c.caseId} ({c.totalStudents})
                   </option>
                 ))}
-                <option value="ALL">All Cases Aggregated</option>
+                <option value="ALL">All Cases</option>
               </>
             ) : (
               <>
-                <option value="PUB-01">PUB-01 (Public Fixture)</option>
+                <option value="PUB-01">PUB-01 (80)</option>
                 <option value="PUB-02">PUB-02</option>
                 <option value="PUB-03">PUB-03</option>
                 <option value="ALL">All Public Cases</option>
@@ -71,11 +85,11 @@ export function Header({ title, subtitle, onSearch }: HeaderProps) {
         </div>
 
         {onSearch && (
-          <div className="relative flex items-center hidden md:flex">
+          <div className="relative items-center hidden md:flex">
             <span className="material-symbols-outlined absolute left-sm text-on-surface-variant text-[20px]">search</span>
             <input
               className="pl-10 pr-sm py-1.5 bg-surface-container rounded-lg border border-transparent focus:border-primary focus:bg-white text-body-md w-56 outline-none transition-all text-xs"
-              placeholder="Search Student ID/Name..."
+              placeholder="Search Student..."
               type="text"
               onChange={(e) => onSearch(e.target.value)}
             />

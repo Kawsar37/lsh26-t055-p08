@@ -96,10 +96,10 @@ export default function CheckingListsPage() {
         </div>
 
         {/* 3 Independent Tabs matching Stitch UI */}
-        <div className="flex items-center gap-3 border-b border-outline-variant/20 pb-2">
+        <div className="flex items-center gap-2 sm:gap-3 border-b border-outline-variant/20 pb-2 overflow-x-auto no-scrollbar">
           <button
             onClick={() => setActiveTab('OPTIONAL')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 ${
               activeTab === 'OPTIONAL'
                 ? 'bg-primary text-white shadow-sm'
                 : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
@@ -116,7 +116,7 @@ export default function CheckingListsPage() {
 
           <button
             onClick={() => setActiveTab('PRACTICAL')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 ${
               activeTab === 'PRACTICAL'
                 ? 'bg-primary text-white shadow-sm'
                 : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
@@ -133,7 +133,7 @@ export default function CheckingListsPage() {
 
           <button
             onClick={() => setActiveTab('ABSENT')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 ${
               activeTab === 'ABSENT'
                 ? 'bg-primary text-white shadow-sm'
                 : 'bg-surface-container text-on-surface-variant hover:bg-surface-container-high'
