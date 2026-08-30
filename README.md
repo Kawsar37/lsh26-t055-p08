@@ -5,7 +5,7 @@ Project: ResultFlow
 Team ID: LSH26-T055
 Problem ID: P08 — School Result Processing and GPA Engine
 Repository: https://github.com/Kawsar37/lsh26-t055-p08.git
-Live URL: http://localhost:3000
+Live URL: https://lsh26-t055-p08.vercel.app
 Deployment Provider: Local Node.js / Express + Next.js
 ```
 
