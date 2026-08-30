@@ -83,8 +83,8 @@ export const api = {
 
   // CSV Import
   getTemplateUrl: () => `${API_BASE}/import/template`,
-  importMarks: async (formData: FormData, dryRun: boolean = false, caseId: string = 'PUB-01') => {
-    const res = await fetch(`${API_BASE}/import/marks?dryRun=${dryRun}&caseId=${caseId}`, {
+  importMarks: async (formData: FormData, dryRun: boolean = false) => {
+    const res = await fetch(`${API_BASE}/import/marks?dryRun=${dryRun}`, {
       method: 'POST',
       body: formData,
     });

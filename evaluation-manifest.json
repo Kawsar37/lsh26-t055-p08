@@ -1,0 +1,70 @@
+{
+  "team_id": "LSH26-T055",
+  "problem_id": "P08",
+  "event_start_code": "LSH26-8490-C900",
+  "project_name": "ResultFlow",
+  "project_subtitle": "School Result Processing and GPA Engine",
+  "repository_name": "lsh26-t055-p08",
+  "repository_url": "https://github.com/Kawsar37/lsh26-t055-p08.git",
+  "live_url": "http://localhost:3000",
+  "deployment_provider": "Local Node.js / Express + Next.js",
+  "team_members": [
+    {
+      "name": "Kawsar",
+      "github_username": "Kawsar37",
+      "role": "Full-Stack Engineer",
+      "contribution": "Core result engine architecture, backend REST APIs, official fixture importer, Stitch UI reproduction, and test suites"
+    }
+  ],
+  "requirements": {
+    "R1": {
+      "name": "Student dataset and subject setup",
+      "status": "Complete",
+      "evidence": "MongoDB models (Student, Mark, Subject, Class, Case) hosting 1,765 total students across 25 public cases (PUB-01 to PUB-25) with 6 compulsory subjects and 1 optional 4th subject per student. Route: /students"
+    },
+    "R2": {
+      "name": "Result calculation",
+      "status": "Complete",
+      "evidence": "Pure TypeScript grading engine (backend/src/services/resultEngine/) implementing exact standard grade scale (80+ 5.0, 70-79 4.0, 60-69 3.5, 50-59 3.0, 40-49 2.0, 33-39 1.0, <33 0.0), practical rules (theory >= 25/75, practical >= 8/25), optional bonus max(0, GP - 2) over fixed divisor 6, compulsory failure override to 0.00 (F), and preserved uncancelled GPA. Verified by 13 unit tests. Route: /results"
+    },
+    "R3": {
+      "name": "Per-student calculation trace",
+      "status": "Complete",
+      "evidence": "CalculationTraceView component providing step-by-step breakdown of concrete marks, subject statuses, rule citations (R-11, R-12, R-13), raw GPA, override explanations, and real-time Edit Marks modal recalculation. Route: /students/[id]"
+    },
+    "R4": {
+      "name": "Checking lists",
+      "status": "Complete",
+      "evidence": "Three independent checking lists: Optional Checking (GP <= 2.0 or AB), Practical Fail (Practical < 8/25), and Absent Review (AB in any subject). Multi-list membership supported with direct links to student audit traces. Route: /checking-lists"
+    }
+  },
+  "sample_data": {
+    "loads_published_fixture": true,
+    "fixture_file": "P08_school_results_public.json",
+    "cases_supported": "PUB-01 through PUB-25 (25 cases, 1,765 total students)",
+    "method": "Command-line script: backend/src/seeds/importPublicFixture.ts",
+    "reset_instructions": "cd backend && npm run seed:fixture (or npm run seed:reset)"
+  },
+  "ai_tools_used": [
+    {
+      "tool": "Stitch",
+      "used_for": "Initial screen design layout and UI design token export",
+      "how_output_was_verified": "Visual review and manual CSS/Tailwind alignment against Stitch design specifications"
+    },
+    {
+      "tool": "Antigravity AI",
+      "used_for": "Implementation pair-programming for deterministic result engine, Next.js frontend pages, REST APIs, and Vitest test suites",
+      "how_output_was_verified": "Automated Vitest unit test suite (13/13 passed), Next.js production build verification (0 errors), and live browser subagent end-to-end testing"
+    }
+  ],
+  "major_design_decisions": [
+    "Implemented a pure deterministic calculation engine decoupled from the database layer for 100% testability and sub-millisecond execution.",
+    "Utilized compound unique indexes ({ caseId: 1, studentId: 1 }) to seamlessly support all 25 official P08 public fixture cases concurrently.",
+    "Preserved mathematically uncancelled GPA alongside compulsory failure overrides to provide full academic transparency in calculation traces.",
+    "Built a real-time CaseContext selector in Next.js frontend allowing instant dataset switching across all pages without page reloads."
+  ],
+  "known_limitations": [
+    "Official marksheet export utilizes browser-native print layout (@media print) rather than server-side headless PDF generation.",
+    "Authentication and multi-tenant role-based access control (RBAC) are omitted as per hackathon specification."
+  ]
+}

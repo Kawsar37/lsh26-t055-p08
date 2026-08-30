@@ -1,21 +1,22 @@
 import { Request, Response } from 'express';
 import { parse } from 'csv-parse/sync';
+import mongoose from 'mongoose';
 import { StudentModel } from '../models/Student.js';
-import { CaseModel } from '../models/Case.js';
+import { SubjectModel } from '../models/Subject.js';
 import { MarkModel } from '../models/Mark.js';
 import { recalculateStudentResult } from '../services/resultService.js';
 
 export function getCsvTemplate(req: Request, res: Response): void {
-  const csvContent = `Student_ID,Subject_Code,Status,Mark,Theory,Practical
-S001,BAN,MARKED,85,,
-S001,ENG,MARKED,78,,
-S001,MAT,MARKED,92,,
-S001,PHY,MARKED,,56,22
-S001,CHE,MARKED,,48,19
-S001,BIO,MARKED,,54,20
-S001,HMT,MARKED,,60,24
-S002,BAN,AB,,,
-S002,PHY,MARKED,,24,7
+  const csvContent = `Student_ID,Student_Name,Subject_Code,Subject_Name,Status,Mark,Theory,Practical
+S-1001,Alice Johnson,101,Bangla,MARKED,85,,
+S-1001,Alice Johnson,107,English,MARKED,78,,
+S-1001,Alice Johnson,109,Mathematics,MARKED,92,,
+S-1001,Alice Johnson,174,Physics,MARKED,,56,22
+S-1001,Alice Johnson,176,Chemistry,MARKED,,48,19
+S-1001,Alice Johnson,178,Biology,MARKED,,54,20
+S-1001,Alice Johnson,126,Higher Mathematics,MARKED,,60,24
+S-1002,Bob Smith,101,Bangla,AB,,,
+S-1002,Bob Smith,174,Physics,MARKED,,24,7
 `;
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename="resultflow_marks_template.csv"');
@@ -24,7 +25,6 @@ S002,PHY,MARKED,,24,7
 
 export async function validateAndImportMarks(req: Request, res: Response): Promise<void> {
   try {
-    const caseId = (req.query.caseId as string) || 'PUB-01';
     let csvData = '';
 
     if (req.file) {
@@ -49,37 +49,17 @@ export async function validateAndImportMarks(req: Request, res: Response): Promi
     const warnings: any[] = [];
     const affectedStudentIds = new Set<string>();
 
-    const caseDoc = await CaseModel.findOne({ caseId });
-    const allStudents = await StudentModel.find({ caseId });
+    const allStudents = await StudentModel.find({}).populate('optionalSubjectId');
+    const allSubjects = await SubjectModel.find({});
 
     const studentMap = new Map<string, any>();
     allStudents.forEach((s) => studentMap.set(s.studentId.toUpperCase(), s));
 
     const subjectMap = new Map<string, any>();
-    if (caseDoc?.subjects) {
-      caseDoc.subjects.forEach((sub: any) => {
-        subjectMap.set(sub.code.toUpperCase(), sub);
-        subjectMap.set(sub.name.toUpperCase(), sub);
-      });
-    }
-
-    // Default subject fallbacks if caseDoc not yet loaded
-    if (subjectMap.size === 0) {
-      [
-        { code: 'BAN', name: 'Bangla', practical: false },
-        { code: 'ENG', name: 'English', practical: false },
-        { code: 'MAT', name: 'Mathematics', practical: false },
-        { code: 'PHY', name: 'Physics', practical: true },
-        { code: 'CHE', name: 'Chemistry', practical: true },
-        { code: 'BIO', name: 'Biology', practical: true },
-        { code: 'HMT', name: 'Higher Mathematics', practical: true },
-        { code: 'AGR', name: 'Agriculture', practical: true },
-        { code: 'REL', name: 'Religion', practical: false }
-      ].forEach((s) => {
-        subjectMap.set(s.code.toUpperCase(), s);
-        subjectMap.set(s.name.toUpperCase(), s);
-      });
-    }
+    allSubjects.forEach((sub) => {
+      subjectMap.set(sub.code.toUpperCase(), sub);
+      subjectMap.set(sub.name.toUpperCase(), sub);
+    });
 
     const seenStudentSubject = new Set<string>();
 
@@ -108,7 +88,7 @@ export async function validateAndImportMarks(req: Request, res: Response): Promi
         rejectedRows.push({
           rowNumber,
           data: row,
-          error: `Student '${studentIdRaw}' does not exist in case ${caseId}`
+          error: `Student '${studentIdRaw}' does not exist in database`
         });
         continue;
       }
@@ -127,12 +107,12 @@ export async function validateAndImportMarks(req: Request, res: Response): Promi
         rejectedRows.push({
           rowNumber,
           data: row,
-          error: `Subject '${subjectCodeRaw}' is not recognized in dataset ${caseId}`
+          error: `Subject '${subjectCodeRaw}' is not recognized`
         });
         continue;
       }
 
-      const duplicateKey = `${student.studentId}_${subject.code}`;
+      const duplicateKey = `${student._id.toString()}_${subject._id.toString()}`;
       if (seenStudentSubject.has(duplicateKey)) {
         rejectedRows.push({
           rowNumber,
@@ -158,22 +138,24 @@ export async function validateAndImportMarks(req: Request, res: Response): Promi
       if (isAbsent) {
         acceptedRows.push({
           rowNumber,
+          studentMongoId: student._id,
           studentId: student.studentId,
           studentName: student.name,
+          subjectMongoId: subject._id,
           subjectName: subject.name,
           subjectCode: subject.code,
-          isPractical: subject.practical,
+          isPractical: subject.isPractical,
           status: 'AB',
           mark: undefined,
           theory: undefined,
           practical: undefined
         });
-        affectedStudentIds.add(student.studentId);
+        affectedStudentIds.add(student._id.toString());
         continue;
       }
 
       // If MARKED, validate numerical boundaries
-      if (subject.practical) {
+      if (subject.isPractical) {
         if (theoryRaw === '' || practicalRaw === '') {
           rejectedRows.push({
             rowNumber,
@@ -213,8 +195,10 @@ export async function validateAndImportMarks(req: Request, res: Response): Promi
 
         acceptedRows.push({
           rowNumber,
+          studentMongoId: student._id,
           studentId: student.studentId,
           studentName: student.name,
+          subjectMongoId: subject._id,
           subjectName: subject.name,
           subjectCode: subject.code,
           isPractical: true,
@@ -223,7 +207,7 @@ export async function validateAndImportMarks(req: Request, res: Response): Promi
           practical,
           total: theory + practical
         });
-        affectedStudentIds.add(student.studentId);
+        affectedStudentIds.add(student._id.toString());
       } else {
         // Normal subject
         if (markRaw === '') {
@@ -247,15 +231,17 @@ export async function validateAndImportMarks(req: Request, res: Response): Promi
 
         acceptedRows.push({
           rowNumber,
+          studentMongoId: student._id,
           studentId: student.studentId,
           studentName: student.name,
+          subjectMongoId: subject._id,
           subjectName: subject.name,
           subjectCode: subject.code,
           isPractical: false,
           status: 'MARKED',
           mark
         });
-        affectedStudentIds.add(student.studentId);
+        affectedStudentIds.add(student._id.toString());
       }
     }
 
@@ -264,29 +250,20 @@ export async function validateAndImportMarks(req: Request, res: Response): Promi
       for (const row of acceptedRows) {
         if (row.status === 'AB') {
           await MarkModel.findOneAndUpdate(
-            { caseId, studentId: row.studentId, subjectCode: row.subjectCode },
-            {
-              $set: { caseId, studentId: row.studentId, subjectCode: row.subjectCode, status: 'AB' },
-              $unset: { mark: 1, theory: 1, practical: 1 }
-            },
+            { studentId: row.studentMongoId, subjectId: row.subjectMongoId },
+            { studentId: row.studentMongoId, subjectId: row.subjectMongoId, status: 'AB', mark: undefined, theory: undefined, practical: undefined },
             { upsert: true, new: true }
           );
         } else if (row.isPractical) {
           await MarkModel.findOneAndUpdate(
-            { caseId, studentId: row.studentId, subjectCode: row.subjectCode },
-            {
-              $set: { caseId, studentId: row.studentId, subjectCode: row.subjectCode, status: 'MARKED', theory: row.theory, practical: row.practical },
-              $unset: { mark: 1 }
-            },
+            { studentId: row.studentMongoId, subjectId: row.subjectMongoId },
+            { studentId: row.studentMongoId, subjectId: row.subjectMongoId, status: 'MARKED', theory: row.theory, practical: row.practical, mark: undefined },
             { upsert: true, new: true }
           );
         } else {
           await MarkModel.findOneAndUpdate(
-            { caseId, studentId: row.studentId, subjectCode: row.subjectCode },
-            {
-              $set: { caseId, studentId: row.studentId, subjectCode: row.subjectCode, status: 'MARKED', mark: row.mark },
-              $unset: { theory: 1, practical: 1 }
-            },
+            { studentId: row.studentMongoId, subjectId: row.subjectMongoId },
+            { studentId: row.studentMongoId, subjectId: row.subjectMongoId, status: 'MARKED', mark: row.mark, theory: undefined, practical: undefined },
             { upsert: true, new: true }
           );
         }
@@ -294,13 +271,12 @@ export async function validateAndImportMarks(req: Request, res: Response): Promi
 
       // Recalculate affected students
       for (const stId of Array.from(affectedStudentIds)) {
-        await recalculateStudentResult(stId, caseId);
+        await recalculateStudentResult(stId);
       }
     }
 
     res.json({
       success: true,
-      caseId,
       dryRun: isDryRun,
       totalRows: records.length,
       acceptedCount: acceptedRows.length,
@@ -311,8 +287,8 @@ export async function validateAndImportMarks(req: Request, res: Response): Promi
       warnings,
       affectedStudentsCount: affectedStudentIds.size,
       message: isDryRun
-        ? `Validated ${records.length} rows for ${caseId}: ${acceptedRows.length} valid, ${rejectedRows.length} rejected.`
-        : `Successfully imported ${acceptedRows.length} marks and recalculated ${affectedStudentIds.size} students in ${caseId}.`
+        ? `Validated ${records.length} rows: ${acceptedRows.length} valid, ${rejectedRows.length} rejected.`
+        : `Successfully imported ${acceptedRows.length} marks and recalculated ${affectedStudentIds.size} students.`
     });
   } catch (error: any) {
     console.error('Error importing marks:', error);

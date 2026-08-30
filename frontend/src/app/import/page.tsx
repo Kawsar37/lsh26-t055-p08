@@ -2,12 +2,10 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Header } from '@/components/Header';
-import { api } from '@/lib/api';
-import { useCase } from '@/context/CaseContext';
+import { Header } from '../../components/Header';
+import { api } from '../../lib/api';
 
 export default function ImportMarksPage() {
-  const { activeCase } = useCase();
   const [file, setFile] = useState<File | null>(null);
   const [isValidating, setIsValidating] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
@@ -36,7 +34,7 @@ export default function ImportMarksPage() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await api.importMarks(formData, true, activeCase); // dryRun = true
+      const res = await api.importMarks(formData, true); // dryRun = true
       setImportResult(res);
     } catch (err: any) {
       setErrorMsg(err.message || 'Validation failed.');
@@ -54,7 +52,7 @@ export default function ImportMarksPage() {
       const formData = new FormData();
       formData.append('file', file);
 
-      const res = await api.importMarks(formData, false, activeCase); // dryRun = false
+      const res = await api.importMarks(formData, false); // dryRun = false
       setImportResult(res);
       setIsSuccess(true);
     } catch (err: any) {
